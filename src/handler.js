@@ -16,8 +16,9 @@ const addNoteHandler = (request, h) => {
     const isSuccess = notes.filter((note) => note.id === id).length > 0;
 
     if (isSuccess) {
-        return h.response({
-            status: 'success!',
+        // FIX: Perbaiki logika respons agar status code 201 bisa diatur
+        const response = h.response({
+            status: 'success', // FIX: Hapus tanda seru
             message: 'catatan berhasil ditambahkan!',
             data: {
                 noteId: id,
@@ -30,9 +31,6 @@ const addNoteHandler = (request, h) => {
     const response = h.response({
         status: 'fail',
         message: 'catatan gagal ditambahkan!',
-        data: {
-            noteId: id,
-        },
     });
     response.code(500);
     return response;
@@ -41,16 +39,22 @@ const addNoteHandler = (request, h) => {
 const getAllNotesHandler = () => ({
     status: 'success',
     data: {
-        notes,
+        // FIX: Petakan (map) array untuk memastikan 'id' selalu ada di respons
+        notes: notes.map((note) => ({
+            id: note.id,
+            title: note.title,
+            body: note.body,
+        })),
     },
 });
 
 const getNoteByIdHandler = (request, h) => {
     const { id } = request.params;
 
-    const note = notes.filter((n) => n.id === id)[0];
+    // IMPROVEMENT: Gunakan .find() agar lebih efisien daripada .filter()[0]
+    const note = notes.find((n) => n.id === id);
 
-    if (note !== undefined){
+    if (note !== undefined) {
         return {
             status: 'success',
             data: {
@@ -61,7 +65,7 @@ const getNoteByIdHandler = (request, h) => {
 
     const response = h.response({
         status: 'fail',
-        message: 'catatan tidak ditemukan!',
+        message: 'catatan tidak ditemukan', // Menghapus '!' agar konsisten
     });
     response.code(404);
     return response;
@@ -74,7 +78,7 @@ const editNoteByIdHandler = (request, h) => {
 
     const index = notes.findIndex((note) => note.id === id);
 
-    if(index !== -1) {
+    if (index !== -1) {
         notes[index] = {
             ...notes[index],
             title, tags, body, updatedAt,
@@ -99,8 +103,8 @@ const deleteNoteByIdHandler = (request, h) => {
     const { id } = request.params;
 
     const index = notes.findIndex((note) => note.id === id);
-    
-    if(index !== -1) {
+
+    if (index !== -1) {
         notes.splice(index, 1);
         const response = h.response({
             status: 'success',
@@ -118,9 +122,9 @@ const deleteNoteByIdHandler = (request, h) => {
     return response;
 }
 
-module.exports = { 
+module.exports = {
     addNoteHandler,
-    getAllNotesHandler, 
+    getAllNotesHandler,
     getNoteByIdHandler,
     editNoteByIdHandler,
     deleteNoteByIdHandler,
